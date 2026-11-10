@@ -3,49 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PikuMind AI Engine</title>
+  <title>PikuMind AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { display: flex; height: 100vh; background-color: #1a1a1a; color: #ececec; }
-    .sidebar { width: 260px; background: #0f0f0f; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #2d2d2d; }
-    .sidebar h2 { font-size: 1.2rem; color: #d97706; margin-bottom: 20px; text-align: center; }
-    .new-chat-btn { background: #d97706; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-    .chat-container { flex: 1; display: flex; flex-direction: column; background: #171717; }
-    .chat-header { padding: 15px; border-bottom: 1px solid #2d2d2d; font-weight: bold; background: #141414; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-    .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 0.95rem; }
-    .user-msg { align-self: flex-end; background: #d97706; color: white; }
-    .ai-msg { align-self: flex-start; background: #262626; color: #ececec; border: 1px solid #333; }
-    .input-box { padding: 15px; border-top: 1px solid #2d2d2d; background: #141414; display: flex; gap: 10px; }
-    .input-box input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #404040; background: #262626; color: white; outline: none; }
-    .input-box button { padding: 12px 20px; border: none; background: #d97706; color: white; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: #f7f7f8; color: #0d0d0d; height: 100vh; display: flex; overflow: hidden; }
+    
+    /* Overlay for mobile sidebar */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10; }
+
+    /* Sidebar */
+    .sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; position: fixed; top: 0; bottom: 0; left: -280px; transition: left 0.3s ease; z-index: 20; }
+    .sidebar.open { left: 0; }
+    .sidebar-top h2 { font-size: 1.25rem; font-weight: 700; color: #111; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .new-chat-btn { width: 100%; padding: 12px; background: #f0f0f0; color: #111; border: 1px solid #e0e0e0; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+    .new-chat-btn:hover { background: #e4e4e4; }
+    
+    /* Main Content */
+    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }
+    
+    /* Top Navigation */
+    .top-nav { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-bottom: 1px solid #f0f0f0; }
+    .menu-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #333; padding: 4px 8px; border-radius: 8px; }
+    .brand-title { font-size: 1.1rem; font-weight: 700; color: #111; }
+    
+    /* Hero / Empty State Screen */
+    .hero-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; max-width: 680px; margin: 0 auto; width: 100%; }
+    .hero-title { font-size: 1.75rem; font-weight: 700; color: #111; margin-bottom: 24px; }
+    .suggestion-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+    .chip { background: #ffffff; border: 1px solid #e5e5e5; padding: 10px 16px; border-radius: 20px; font-size: 0.88rem; color: #444; cursor: pointer; transition: 0.2s; font-weight: 500; }
+    .chip:hover { background: #eee; }
+
+    /* Chat Messages List */
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 768px; width: 100%; margin: 0 auto; }
+    .message-row { display: flex; gap: 12px; width: 100%; }
+    .message-row.user { justify-content: flex-end; }
+    .msg-bubble { max-width: 85%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
+    .user .msg-bubble { background: #111; color: #fff; border-bottom-right-radius: 4px; }
+    .ai .msg-bubble { background: #ffffff; color: #111; border: 1px solid #e5e5e5; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+
+    /* Input Bar (ChatGPT Modern Capsule) */
+    .input-wrapper { padding: 16px; background: transparent; width: 100%; max-width: 768px; margin: 0 auto; }
+    .input-box { display: flex; align-items: center; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 28px; padding: 8px 12px 8px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.2s; }
+    .input-box:focus-within { border-color: #bbb; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .input-box input { flex: 1; border: none; outline: none; background: transparent; font-size: 0.95rem; color: #111; }
+    .send-btn { width: 36px; height: 36px; border-radius: 50%; background: #111; border: none; color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; transition: 0.2s; }
+    .send-btn:hover { background: #333; }
+    
+    .footer-text { font-size: 0.75rem; text-align: center; color: #8e8e93; margin-top: 8px; }
+
+    @media (min-width: 768px) {
+      .sidebar { left: 0; }
+      .main-container { margin-left: 280px; }
+      .menu-btn { display: none; }
+      .overlay { display: none !important; }
+    }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>PikuMind</h2>
-    <button class="new-chat-btn">+ নতুন চ্যাট</button>
-  </div>
-  <div class="chat-container">
-    <div class="chat-header">PikuMind AI Assistant</div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="message ai-msg">আসসালামু আলাইকুম! আমি PikuMind। আজকে তোমাকে কীভাবে সাহায্য করব বলো?</div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <h2>PikuMind <span style="font-size:0.7rem; background:#111; color:#fff; padding:2px 6px; border-radius:6px;">PRO</span></h2>
+      <button class="new-chat-btn" onclick="clearChat()">+ নতুন চ্যাট</button>
     </div>
-    <div class="input-box">
-      <input type="text" id="userInput" placeholder="এখানে কিছু লেখੋ..." onkeypress="if(event.key === 'Enter') sendMessage()">
-      <button onclick="sendMessage()">পাঠাও</button>
+    <div style="font-size: 0.85rem; color: #888;">© PikuMind AI Engine</div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <div class="top-nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand-title">PikuMind</div>
+      <div style="width: 24px;"></div>
+    </div>
+
+    <!-- Active Chat View -->
+    <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+
+    <!-- Hero Screen (First View) -->
+    <div class="hero-container" id="heroView">
+      <h1 class="hero-title">আমি কীভাবে সাহায্য করতে পারি?</h1>
+      <div class="suggestion-chips">
+        <div class="chip" onclick="quickSend('কোডিং শেখার নিয়ম বলো')">💻 কোডিং শেখার সহজ উপায়</div>
+        <div class="chip" onclick="quickSend('HTML Canvas ছবি কীভাবে বানায়?')">🎨 ক্যানভাস জেনারেটর কোড</div>
+        <div class="chip" onclick="quickSend('বাংলা বইয়ের সারসংক্ষেপ দাও')">📚 সাহিত্য ও বইয়ের তথ্য</div>
+      </div>
+    </div>
+
+    <!-- Input Floating Bar -->
+    <div class="input-wrapper">
+      <div class="input-box">
+        <input type="text" id="userInput" placeholder="PikuMind-কে যেকোনো কিছু জিজ্ঞাসা করো..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">➔</button>
+      </div>
+      <div class="footer-text">PikuMind ভুল তথ্য দিতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নাও।</div>
     </div>
   </div>
+
   <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('open');
+      overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+    }
+
+    function clearChat() {
+      document.getElementById('chatMessages').innerHTML = '';
+      document.getElementById('chatMessages').style.display = 'none';
+      document.getElementById('heroView').style.display = 'flex';
+      if(window.innerWidth < 768) toggleSidebar();
+    }
+
+    function quickSend(text) {
+      document.getElementById('userInput').value = text;
+      sendMessage();
+    }
+
     function sendMessage() {
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text) return;
+
+      document.getElementById('heroView').style.display = 'none';
       const box = document.getElementById('chatMessages');
-      box.innerHTML += `<div class="message user-msg">${text}</div>`;
+      box.style.display = 'flex';
+
+      // Append User Msg
+      box.innerHTML += `
+        <div class="message-row user">
+          <div class="msg-bubble">${text}</div>
+        </div>
+      `;
+
       input.value = '';
+      box.scrollTop = box.scrollHeight;
+
+      // Simulate AI Response
       setTimeout(() => {
-        box.innerHTML += `<div class="message ai-msg">তোমার কথা পেয়েছি: "${text}"। এটা নিয়ে কাজ করছি!</div>`;
+        box.innerHTML += `
+          <div class="message-row ai">
+            <div class="msg-bubble">তোমার প্রশ্নটি পেয়েছি: <b>"${text}"</b><br>Supabase ও PikuMind ব্যাকএন্ড থেকে এর সঠিক উত্তর তৈরি করা হচ্ছে...</div>
+          </div>
+        `;
         box.scrollTop = box.scrollHeight;
       }, 500);
     }
