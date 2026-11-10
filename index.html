@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,55 +7,78 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: #f7f7f8; color: #0d0d0d; height: 100vh; display: flex; overflow: hidden; }
+    body { background-color: #fbfbfd; color: #1d1d1f; height: 100vh; display: flex; overflow: hidden; }
     
-    /* Overlay for mobile sidebar */
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10; }
+    /* Overlay for Mobile Sidebar */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
 
-    /* Sidebar */
-    .sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; position: fixed; top: 0; bottom: 0; left: -280px; transition: left 0.3s ease; z-index: 20; }
+    /* Cute & Modern Sidebar */
+    .sidebar { width: 260px; background: #ffffff; border-right: 1px solid #eef0f4; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; position: fixed; top: 0; bottom: 0; left: -260px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; box-shadow: 4px 0 24px rgba(0,0,0,0.03); }
     .sidebar.open { left: 0; }
-    .sidebar-top h2 { font-size: 1.25rem; font-weight: 700; color: #111; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-    .new-chat-btn { width: 100%; padding: 12px; background: #f0f0f0; color: #111; border: 1px solid #e0e0e0; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-    .new-chat-btn:hover { background: #e4e4e4; }
     
-    /* Main Content */
-    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }
-    
-    /* Top Navigation */
-    .top-nav { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-bottom: 1px solid #f0f0f0; }
-    .menu-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #333; padding: 4px 8px; border-radius: 8px; }
-    .brand-title { font-size: 1.1rem; font-weight: 700; color: #111; }
-    
-    /* Hero / Empty State Screen */
-    .hero-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; max-width: 680px; margin: 0 auto; width: 100%; }
-    .hero-title { font-size: 1.75rem; font-weight: 700; color: #111; margin-bottom: 24px; }
-    .suggestion-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
-    .chip { background: #ffffff; border: 1px solid #e5e5e5; padding: 10px 16px; border-radius: 20px; font-size: 0.88rem; color: #444; cursor: pointer; transition: 0.2s; font-weight: 500; }
-    .chip:hover { background: #eee; }
+    .brand-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 0 4px; }
+    .brand-logo { font-size: 1.25rem; font-weight: 700; color: #1d1d1f; display: flex; align-items: center; gap: 8px; }
+    .brand-logo span { font-size: 0.75rem; background: #e8f2ff; color: #0066ff; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+    .close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8e8e93; }
 
-    /* Chat Messages List */
-    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 768px; width: 100%; margin: 0 auto; }
-    .message-row { display: flex; gap: 12px; width: 100%; }
-    .message-row.user { justify-content: flex-end; }
-    .msg-bubble { max-width: 85%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
-    .user .msg-bubble { background: #111; color: #fff; border-bottom-right-radius: 4px; }
-    .ai .msg-bubble { background: #ffffff; color: #111; border: 1px solid #e5e5e5; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-
-    /* Input Bar (ChatGPT Modern Capsule) */
-    .input-wrapper { padding: 16px; background: transparent; width: 100%; max-width: 768px; margin: 0 auto; }
-    .input-box { display: flex; align-items: center; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 28px; padding: 8px 12px 8px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.2s; }
-    .input-box:focus-within { border-color: #bbb; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    .input-box input { flex: 1; border: none; outline: none; background: transparent; font-size: 0.95rem; color: #111; }
-    .send-btn { width: 36px; height: 36px; border-radius: 50%; background: #111; border: none; color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; transition: 0.2s; }
-    .send-btn:hover { background: #333; }
+    /* Nav Items */
+    .nav-list { display: flex; flex-direction: column; gap: 6px; list-style: none; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; color: #48484a; font-weight: 500; font-size: 0.92rem; text-decoration: none; cursor: pointer; transition: 0.2s; }
+    .nav-item:hover, .nav-item.active { background: #f2f4f8; color: #0066ff; }
+    .nav-item svg { width: 18px; height: 18px; fill: currentColor; }
     
-    .footer-text { font-size: 0.75rem; text-align: center; color: #8e8e93; margin-top: 8px; }
+    .nav-divider { height: 1px; background: #eef0f4; margin: 16px 0; }
+    .section-title { font-size: 0.75rem; font-weight: 700; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 14px 8px; }
+
+    /* User Profile Bottom Box */
+    .user-profile { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f8f9fc; border-radius: 16px; border: 1px solid #edf0f7; }
+    .profile-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #0066ff; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .user-name { font-size: 0.88rem; font-weight: 600; color: #1d1d1f; }
+
+    /* Main Container */
+    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; background: #ffffff; }
+    
+    /* Top Bar */
+    .top-nav { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-bottom: 1px solid #f2f4f8; }
+    .menu-btn { background: #f4f5f8; border: none; font-size: 1.2rem; cursor: pointer; color: #1d1d1f; padding: 8px 12px; border-radius: 10px; transition: 0.2s; }
+    .menu-btn:hover { background: #e8e9ed; }
+    .page-title { font-size: 1rem; font-weight: 700; color: #1d1d1f; }
+
+    /* Hero Center Screen */
+    .hero-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; max-width: 640px; margin: 0 auto; width: 100%; }
+    .hero-title { font-size: 2rem; font-weight: 700; color: #1d1d1f; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .hero-subtitle { font-size: 0.95rem; color: #8e8e93; margin-bottom: 28px; }
+
+    .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; width: 100%; }
+    .card { background: #f8f9fc; border: 1px solid #eef0f4; padding: 14px; border-radius: 16px; text-align: left; cursor: pointer; transition: all 0.2s; }
+    .card:hover { border-color: #0066ff; transform: translateY(-2px); background: #ffffff; box-shadow: 0 4px 16px rgba(0,102,255,0.06); }
+    .card-title { font-size: 0.88rem; font-weight: 600; color: #1d1d1f; margin-bottom: 4px; }
+    .card-desc { font-size: 0.78rem; color: #8e8e93; }
+
+    /* Active Chat Area */
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; max-width: 720px; width: 100%; margin: 0 auto; }
+    .msg-row { display: flex; gap: 10px; width: 100%; }
+    .msg-row.user { justify-content: flex-end; }
+    .bubble { max-width: 82%; padding: 12px 16px; border-radius: 18px; font-size: 0.93rem; line-height: 1.5; }
+    .user .bubble { background: #0066ff; color: #ffffff; border-bottom-right-radius: 4px; }
+    .ai .bubble { background: #f2f4f8; color: #1d1d1f; border-bottom-left-radius: 4px; }
+
+    /* Bottom Input Floating Container */
+    .input-wrapper { padding: 12px 16px 16px; background: #ffffff; width: 100%; max-width: 720px; margin: 0 auto; }
+    .input-box { display: flex; align-items: center; background: #f4f5f8; border: 1px solid #eef0f4; border-radius: 28px; padding: 6px 8px 6px 18px; transition: 0.2s; }
+    .input-box:focus-within { background: #ffffff; border-color: #0066ff; box-shadow: 0 4px 20px rgba(0, 102, 255, 0.1); }
+    .input-box input { flex: 1; border: none; outline: none; background: transparent; font-size: 0.93rem; color: #1d1d1f; }
+    .send-btn { width: 38px; height: 38px; border-radius: 50%; background: #0066ff; border: none; color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+    .send-btn:hover { background: #0052cc; transform: scale(1.05); }
+    
+    .footer-note { font-size: 0.72rem; text-align: center; color: #a1a1a6; margin-top: 8px; }
 
     @media (min-width: 768px) {
       .sidebar { left: 0; }
-      .main-container { margin-left: 280px; }
+      .main-container { margin-left: 260px; }
       .menu-btn { display: none; }
+      .close-btn { display: none; }
       .overlay { display: none !important; }
     }
   </style>
@@ -64,45 +87,99 @@
 
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <h2>PikuMind <span style="font-size:0.7rem; background:#111; color:#fff; padding:2px 6px; border-radius:6px;">PRO</span></h2>
-      <button class="new-chat-btn" onclick="clearChat()">+ নতুন চ্যাট</button>
-    </div>
-    <div style="font-size: 0.85rem; color: #888;">© PikuMind AI Engine</div>
-  </div>
+  <!-- Cute & Sleek Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div>
+      <div class="brand-section">
+        <div class="brand-logo">
+          PikuMind <span>PRO</span>
+        </div>
+        <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      </div>
 
-  <!-- Main Container -->
-  <div class="main-container">
-    <div class="top-nav">
+      <ul class="nav-list">
+        <li class="nav-item active" onclick="clearChat()">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          New Chat
+        </li>
+        <li class="nav-item" onclick="quickSend('Open Canvas Generator')">
+          <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 21l3.68-1.22C9.52 20.47 10.72 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-1.14 0-2.22-.32-3.16-.89l-.23-.14-2.18.72.73-2.13-.15-.24A6.974 6.974 0 0 1 5 12c0-3.86 3.14-7 7-7s7 3.14 7 7-3.14 7-7 7z"/></svg>
+          Canvas Studio
+        </li>
+        <li class="nav-item" onclick="quickSend('Search Books Database')">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Knowledge Base
+        </li>
+      </ul>
+
+      <div class="nav-divider"></div>
+      <div class="section-title">Recent Chats</div>
+
+      <ul class="nav-list">
+        <li class="nav-item" onclick="quickSend('Explain Supabase Connection')">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          Supabase Setup
+        </li>
+        <li class="nav-item" onclick="quickSend('HTML Canvas Drawing Engine')">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          Canvas Logic
+        </li>
+      </ul>
+    </div>
+
+    <!-- Bottom User Profile Card -->
+    <div class="user-profile">
+      <div class="profile-info">
+        <div class="avatar">P</div>
+        <div class="user-name">Piku User</div>
+      </div>
+      <span style="font-size:0.8rem; color:#8e8e93; cursor:pointer;" onclick="quickSend('Open Settings')">⚙️</span>
+    </div>
+  </aside>
+
+  <!-- Main Chat View -->
+  <main class="main-container">
+    <header class="top-nav">
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-      <div class="brand-title">PikuMind</div>
-      <div style="width: 24px;"></div>
-    </div>
+      <div class="page-title">PikuMind Workspace</div>
+      <div style="width: 32px;"></div>
+    </header>
 
-    <!-- Active Chat View -->
+    <!-- Messages Container -->
     <div class="chat-messages" id="chatMessages" style="display: none;"></div>
 
-    <!-- Hero Screen (First View) -->
+    <!-- Front Hero Screen -->
     <div class="hero-container" id="heroView">
-      <h1 class="hero-title">আমি কীভাবে সাহায্য করতে পারি?</h1>
-      <div class="suggestion-chips">
-        <div class="chip" onclick="quickSend('কোডিং শেখার নিয়ম বলো')">💻 কোডিং শেখার সহজ উপায়</div>
-        <div class="chip" onclick="quickSend('HTML Canvas ছবি কীভাবে বানায়?')">🎨 ক্যানভাস জেনারেটর কোড</div>
-        <div class="chip" onclick="quickSend('বাংলা বইয়ের সারসংক্ষেপ দাও')">📚 সাহিত্য ও বইয়ের তথ্য</div>
+      <h1 class="hero-title">What would you like to build?</h1>
+      <p class="hero-subtitle">Ask PikuMind anything about code, books, or visual canvas creation.</p>
+      
+      <div class="suggestion-grid">
+        <div class="card" onclick="quickSend('How to setup Supabase vector database?')">
+          <div class="card-title">📚 Supabase Vector</div>
+          <div class="card-desc">Store books & data</div>
+        </div>
+        <div class="card" onclick="quickSend('Generate HTML5 Canvas Code')">
+          <div class="card-title">🎨 Canvas Art</div>
+          <div class="card-desc">Create visual JS drawings</div>
+        </div>
+        <div class="card" onclick="quickSend('Learn Python basics for AI')">
+          <div class="card-title">💻 Code Assistant</div>
+          <div class="card-desc">Python & JS scripts</div>
+        </div>
       </div>
     </div>
 
-    <!-- Input Floating Bar -->
+    <!-- Sticky Bottom Input Box -->
     <div class="input-wrapper">
       <div class="input-box">
-        <input type="text" id="userInput" placeholder="PikuMind-কে যেকোনো কিছু জিজ্ঞাসা করো..." onkeypress="if(event.key === 'Enter') sendMessage()">
-        <button class="send-btn" onclick="sendMessage()">➔</button>
+        <input type="text" id="userInput" placeholder="Ask PikuMind anything..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+        </button>
       </div>
-      <div class="footer-text">PikuMind ভুল তথ্য দিতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নাও।</div>
+      <div class="footer-note">PikuMind may produce inaccurate info. Verify important code & facts.</div>
     </div>
-  </div>
+  </main>
 
   <script>
     function toggleSidebar() {
@@ -133,21 +210,21 @@
       const box = document.getElementById('chatMessages');
       box.style.display = 'flex';
 
-      // Append User Msg
+      // User Bubble
       box.innerHTML += `
-        <div class="message-row user">
-          <div class="msg-bubble">${text}</div>
+        <div class="msg-row user">
+          <div class="bubble">${text}</div>
         </div>
       `;
 
       input.value = '';
       box.scrollTop = box.scrollHeight;
 
-      // Simulate AI Response
+      // Simulated AI Reply
       setTimeout(() => {
         box.innerHTML += `
-          <div class="message-row ai">
-            <div class="msg-bubble">তোমার প্রশ্নটি পেয়েছি: <b>"${text}"</b><br>Supabase ও PikuMind ব্যাকএন্ড থেকে এর সঠিক উত্তর তৈরি করা হচ্ছে...</div>
+          <div class="msg-row ai">
+            <div class="bubble">Processing query: <b>"${text}"</b><br>Connecting to Supabase vector search & backend pipeline...</div>
           </div>
         `;
         box.scrollTop = box.scrollHeight;
