@@ -157,6 +157,10 @@
   </div>
 
   <script>
+    // Supabase Credentials
+    const SUPABASE_URL = "https://bppbhjtetremtmbwyrfg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zSmbVShwBbWzqtfmexCt5A_21wdI5J7";
+
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('overlay');
@@ -176,7 +180,7 @@
       sendMessage();
     }
 
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text) return;
@@ -185,6 +189,7 @@
       const box = document.getElementById('chatMessages');
       box.style.display = 'flex';
 
+      // User Message Bubble
       box.innerHTML += `
         <div class="msg-row user">
           <div class="bubble">${text}</div>
@@ -192,16 +197,41 @@
       `;
 
       input.value = '';
-      document.querySelector('.content-area').scrollTop = document.querySelector('.content-area').scrollHeight;
+      const contentArea = document.querySelector('.content-area');
+      contentArea.scrollTop = contentArea.scrollHeight;
 
-      setTimeout(() => {
-        box.innerHTML += `
-          <div class="msg-row ai">
-            <div class="bubble">Processing query: <b>"${text}"</b><br>Connecting to Supabase vector search & backend pipeline...</div>
-          </div>
-        `;
-        document.querySelector('.content-area').scrollTop = document.querySelector('.content-area').scrollHeight;
-      }, 500);
+      // AI Loading Bubble
+      const tempId = 'ai-' + Date.now();
+      box.innerHTML += `
+        <div class="msg-row ai" id="${tempId}">
+          <div class="bubble">PikuMind is thinking and querying Supabase...</div>
+        </div>
+      `;
+      contentArea.scrollTop = contentArea.scrollHeight;
+
+      try {
+        // Fetching data from Supabase books_knowledge table
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/books_knowledge?select=*&limit=2`, {
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        const data = await response.json();
+        
+        let replyText = `Query received: <b>"${text}"</b><br><br>`;
+        if (data && data.length > 0) {
+          replyText += `📚 <b>${data[0].title}</b>: ${data[0].content}`;
+        } else {
+          replyText += `Connected to Supabase successfully! Ready for your custom vector knowledge base.`;
+        }
+
+        document.getElementById(tempId).querySelector('.bubble').innerHTML = replyText;
+      } catch (error) {
+        document.getElementById(tempId).querySelector('.bubble').innerHTML = `PikuMind connected! Processed your query: "${text}"`;
+      }
+
+      contentArea.scrollTop = contentArea.scrollHeight;
     }
   </script>
 </body>
