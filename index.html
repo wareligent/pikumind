@@ -253,14 +253,27 @@
         const lowerInput = text.toLowerCase();
 
         if (books && books.length > 0) {
-          // Flexible matching across all book titles and contents
+          // Strict targeted keyword matching to prevent false mapping
           matchedBook = books.find(b => {
             const title = b.title ? b.title.toLowerCase() : "";
             const content = b.content ? b.content.toLowerCase() : "";
             
-            // Check if any significant word from user input matches book title or content
-            return lowerInput.split(' ').some(word => word.length > 1 && (title.includes(word) || content.includes(word))) ||
-                   title.includes(lowerInput) || lowerInput.includes(title);
+            if (lowerInput.includes('হুমায়ূন') || lowerInput.includes('humayun')) {
+              return title.includes('হুমায়ূন') || content.includes('হুমায়ূন');
+            }
+            if (lowerInput.includes('python') || lowerInput.includes('পাইথন')) {
+              return title.includes('python') || title.includes('পাইথন') || content.includes('python');
+            }
+            if (lowerInput.includes('javascript') || lowerInput.includes('জাভাস্ক্রিপ্ট')) {
+              return title.includes('javascript') || content.includes('javascript');
+            }
+            if (lowerInput.includes('মোবাইল') || lowerInput.includes('app') || lowerInput.includes('অ্যাপ')) {
+              return title.includes('মোবাইল') || content.includes('মোবাইল');
+            }
+
+            // General query check for distinct words (length > 4)
+            const words = lowerInput.split(' ').filter(w => w.length > 4);
+            return words.some(word => title.includes(word) || content.includes(word));
           });
         }
 
@@ -268,15 +281,8 @@
         if (matchedBook && matchedBook.content) {
           fullAnswer = `📚 <b>[বই ও নোট থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
         } else {
-          // If no specific book matched, show all available books as suggestions
-          let bookListText = "";
-          if (books && books.length > 0) {
-            bookListText = "<br><br><b>আমার ডাটাবেসে বর্তমানে এই বই ও নোটগুলো রয়েছে:</b><br>" + books.map(b => `• <b>${b.title}</b>`).join('<br>');
-          } else {
-            bookListText = "<br><br><i>বর্তমানে Supabase টেবিলে কোনো বই যুক্ত করা নেই।</i>";
-          }
-
-          fullAnswer = `🌐 <b>[PikuMind জ্ঞানভাণ্ডার]</b><br><br>তোমার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়ের কোনো নির্দিষ্ট নোট সরাসরি মেলেনি।${bookListText}`;
+          // Intelligent conversational response when no direct book matches
+          fullAnswer = `🤖 <b>[PikuMind AI Assistant]</b><br><br>আপনার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়টি সম্পর্কে আমার ডাটাবেসের নির্দিষ্ট কোনো বইয়ে তথ্য পাওয়া যায়নি। আপনি চাইলে Supabase টেবিলে নতুন নোট বা বই যোগ করে নিতে পারেন!`;
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
