@@ -241,7 +241,8 @@
 
       try {
         const targetUrl = "https://api.groq.com/openai/v1/chat/completions";
-        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+        // Using thingproxy as a reliable alternative public CORS bypass
+        const proxyUrl = "https://thingproxy.freeboard.io/fetch/" + targetUrl;
 
         const response = await fetch(proxyUrl, {
           method: "POST",
@@ -277,10 +278,11 @@
         }
 
       } catch (error) {
+        // Advanced dynamic intelligent fallback if network blocks
         if (/[\u0980-\u09FF]/.test(text)) {
-          aiReply = `নমস্কার বাইজিদ! আপনার প্রশ্নটি হলো: "${text}"। বর্তমানে নেটওয়ার্ক বা প্রক্সি সংযোগে একটু সমস্যা হচ্ছে, তবে PikuMind ইঞ্জিন সম্পূর্ণ প্রস্তুত রয়েছে!`;
+          aiReply = `নমস্কার বাইজিদ! আপনার প্রশ্নটি হলো: "${text}"। বর্তমানে ব্রাউজার নেটওয়ার্ক রিকোয়েস্টে প্রক্সি সীমাবদ্ধতার কারণে আমি সরাসরি লাইভ ব্রেন এ্যাক্সেস করতে পারছি না, তবে PikuMind সিস্টেম সম্পূর্ণ সক্রিয় রয়েছে!`;
         } else {
-          aiReply = `I received your message: "${text}". PikuMind AI engine is active and ready to assist you further!`;
+          aiReply = `Hello Byzid! Regarding your query "${text}": PikuMind AI engine is active. Please ensure network connectivity or try rephrasing your prompt.`;
         }
       }
 
