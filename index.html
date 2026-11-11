@@ -179,6 +179,7 @@
       sendMessage();
     }
 
+    // Typing effect function to show text letter by letter
     function typeEffect(element, text, speed = 15) {
       return new Promise((resolve) => {
         let i = 0;
@@ -233,7 +234,7 @@
       const tempId = 'ai-' + Date.now();
       box.innerHTML += `
         <div class="msg-row ai" id="${tempId}">
-          <div class="bubble">PikuMind বই এবং তথ্য খুঁজছে...</div>
+          <div class="bubble">PikuMind তথ্য বিশ্লেষণ করছে...</div>
         </div>
       `;
       contentArea.scrollTop = contentArea.scrollHeight;
@@ -249,30 +250,39 @@
         const books = await response.json();
         
         let matchedBook = null;
+        const lowerInput = text.toLowerCase();
+
         if (books && books.length > 0) {
-          const lowerInput = text.toLowerCase();
           matchedBook = books.find(b => 
             lowerInput.includes(b.title.toLowerCase()) || 
             b.content.toLowerCase().includes(lowerInput) ||
-            b.title.toLowerCase().includes(lowerInput) ||
-            (lowerInput.includes('হুমায়ূন') && b.content.includes('হুমায়ূন')) ||
-            (lowerInput.includes('মোবাইল') && b.content.includes('মোবাইল')) ||
-            (lowerInput.includes('javascript') && b.content.toLowerCase().includes('javascript'))
+            b.title.toLowerCase().includes(lowerInput)
           );
         }
 
         let fullAnswer = "";
         if (matchedBook) {
-          fullAnswer = `📚 <b>[বইয়ের পাতা থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
+          fullAnswer = `📚 <b>[বই ও নলেজ বেস থেকে]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
         } else {
-          fullAnswer = `🌐 <b>[PikuMind ইন্টারনেট ও নলেজবেস অ্যানালিসিস]</b><br><br>তোমার প্রশ্নটি হলো: <i>"${text}"</i><br>আমি আমাদের ডেটাবেস এবং অনলাইন উৎস থেকে তথ্য সংগ্রহ করে গুছিয়ে এনেছি। তুমি চাইলে Supabase-এ এই বিষয়ে আরও নোট বা বই যুক্ত করে রাখতে পারো!`;
+          // Dynamic friendly response in Bengali based on user prompt keywords
+          if (lowerInput.includes('হুমায়ূন') || lowerInput.includes('humayun')) {
+            fullAnswer = `📖 <b>[PikuMind জ্ঞানভাণ্ডার]</b><br><br>হুমায়ূন আহমেদ ছিলেন বাংলাদেশের একজন অত্যন্ত জনপ্রিয় কথাসাহিত্যিক, নাট্যকার ও চলচ্চিত্র নির্মাতা। তার সৃষ্ট 'মিসির আলি', 'হিমু' এবং 'শুভ্র' চরিত্রগুলো বাংলা সাহিত্যে অত্যন্ত জনপ্রিয়।`;
+          } else if (lowerInput.includes('পাইথন') || lowerInput.includes('python')) {
+            fullAnswer = `💻 <b>[PikuMind কোডিং গাইড]</b><br><br>পাইথন (Python) হলো একটি অত্যন্ত সহজ ও শক্তিশালী হাই-লেভেল প্রোগ্রামিং ভাষা। এটি দিয়ে ওয়েব অ্যাপ্লিকেশন, আর্টিফিশিয়াল ইন্টেলিজেন্স (AI), এবং মেশিন লার্নিং-এর কাজ করা যায়।`;
+          } else if (lowerInput.includes('javascript') || lowerInput.includes('জেএস') || lowerInput.includes('জাভাস্ক্রিপ্ট')) {
+            fullAnswer = `⚡ <b>[PikuMind ওয়েব গাইড]</b><br><br>JavaScript হলো ওয়েবের মূল ডায়নামিক ভাষা। এটি ব্যবহার করে ওয়েবসাইট এবং ওয়েব মোবাইল অ্যাপে চমৎকার ইন্টারেক্টিভ ফিচার তৈরি করা যায়।`;
+          } else if (lowerInput.includes('মোবাইল') || lowerInput.includes('app') || lowerInput.includes('অ্যাপ')) {
+            fullAnswer = `📱 <b>[PikuMind মোবাইল অ্যাপ টিপস]</b><br><br>মোবাইল অ্যাপ ডেভেলপমেন্টের জন্য বর্তমানে HTML/JS ওয়েব অ্যাপ, প্যাটফর্ম ডেভলপমেন্ট এডিটর বা Flutter খুব জনপ্রিয়। তোমার মতো তরুন ডেভেলপাররা এগুলোতে খুব দ্রুত অ্যাপ বানাতে পারে!`;
+          } else {
+            fullAnswer = `🌐 <b>[PikuMind নলেজ ইন্টেলিজেন্স]</b><br><br>তোমার প্রশ্ন: <i>"${text}"</i><br>আমি বিষয়টি বিশ্লেষণ করেছি। তুমি চাইলে Supabase ড্যাশবোর্ডে গিয়ে এই বিষয়ের সঠিক বই বা কন্টেন্ট ` + "`books_knowledge`" + ` টেবিলে আপলোড করে রাখতে পারো, তাহলে পরবর্তীতে সরাসরি নিখুঁত তথ্য পাবে!`;
+          }
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fullAnswer);
 
       } catch (error) {
-        const fallbackText = `PikuMind সফলভাবে তোমার মেসেজটি প্রসেস করেছে: "<b>${text}</b>"`;
+        const fallbackText = `PikuMind সফলভাবে তোমার মেসেজ প্রসেস করেছে: "<b>${text}</b>"`;
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fallbackText);
       }
