@@ -271,7 +271,6 @@
               return title.includes('মোবাইল') || content.includes('মোবাইল');
             }
 
-            // General query check for distinct words (length > 4)
             const words = lowerInput.split(' ').filter(w => w.length > 4);
             return words.some(word => title.includes(word) || content.includes(word));
           });
@@ -279,10 +278,19 @@
 
         let fullAnswer = "";
         if (matchedBook && matchedBook.content) {
-          fullAnswer = `📚 <b>[বই ও নোট থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
+          // Dynamic variations so answers feel fresh and natural every time
+          const variations = [
+            `📚 <b>[বই ও নোট থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`,
+            `📖 <b>[আমার নলেজ বেস থেকে]</b><br><br>তোমার কাঙ্ক্ষিত বিষয়টি <b>${matchedBook.title}</b> বইয়ে এভাবে উল্লেখ আছে:<br>${matchedBook.content}`,
+            `💡 <b>[তথ্য অনুসন্ধান ফলাফল]</b><br><br><b>${matchedBook.title}</b> এর পাতা ঘেঁটে যা পাওয়া গেল:<br>${matchedBook.content}`
+          ];
+          fullAnswer = variations[Math.floor(Math.random() * variations.length)];
         } else {
-          // Intelligent conversational response when no direct book matches
-          fullAnswer = `🤖 <b>[PikuMind AI Assistant]</b><br><br>আপনার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়টি সম্পর্কে আমার ডাটাবেসের নির্দিষ্ট কোনো বইয়ে তথ্য পাওয়া যায়নি। আপনি চাইলে Supabase টেবিলে নতুন নোট বা বই যোগ করে নিতে পারেন!`;
+          const fallbackVariations = [
+            `🤖 <b>[PikuMind AI Assistant]</b><br><br>আপনার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়টি সম্পর্কে আমার ডাটাবেসের নির্দিষ্ট কোনো বইয়ে তথ্য পাওয়া যায়নি। আপনি চাইলে Supabase টেবিলে নতুন নোট বা বই যোগ করে নিতে পারেন!`,
+            `🔍 <b>[অনুসন্ধান নোটিশ]</b><br><br><i>"${text}"</i> - এই টপিক নিয়ে আমার সংগ্রহশালায় সরাসরি কোনো নোট নেই। তবে আপনি চাইলে এটি আমাদের বইয়ের ডেটাবেসে যুক্ত করে দিতে পারেন!`
+          ];
+          fullAnswer = fallbackVariations[Math.floor(Math.random() * fallbackVariations.length)];
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
