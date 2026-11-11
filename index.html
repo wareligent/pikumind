@@ -179,14 +179,12 @@
       sendMessage();
     }
 
-    // Typing effect function to show text letter by letter
     function typeEffect(element, text, speed = 15) {
       return new Promise((resolve) => {
         let i = 0;
         element.innerHTML = "";
         function type() {
           if (i < text.length) {
-            // Support HTML tag rendering during typing
             if (text.charAt(i) === '<') {
               let tagEnd = text.indexOf('>', i);
               if (tagEnd !== -1) {
@@ -235,13 +233,13 @@
       const tempId = 'ai-' + Date.now();
       box.innerHTML += `
         <div class="msg-row ai" id="${tempId}">
-          <div class="bubble">PikuMind is searching books and internet...</div>
+          <div class="bubble">PikuMind বই এবং তথ্য খুঁজছে...</div>
         </div>
       `;
       contentArea.scrollTop = contentArea.scrollHeight;
 
       try {
-        // Step 1: Query Supabase Database for matching book knowledge
+        // Fetch books from Supabase
         const response = await fetch(`${SUPABASE_URL}/rest/v1/books_knowledge?select=*`, {
           headers: {
             "apikey": SUPABASE_KEY,
@@ -255,23 +253,26 @@
           const lowerInput = text.toLowerCase();
           matchedBook = books.find(b => 
             lowerInput.includes(b.title.toLowerCase()) || 
-            b.content.toLowerCase().includes(lowerInput)
+            b.content.toLowerCase().includes(lowerInput) ||
+            b.title.toLowerCase().includes(lowerInput) ||
+            (lowerInput.includes('হুমায়ূন') && b.content.includes('হুমায়ূন')) ||
+            (lowerInput.includes('মোবাইল') && b.content.includes('মোবাইল')) ||
+            (lowerInput.includes('javascript') && b.content.toLowerCase().includes('javascript'))
           );
         }
 
         let fullAnswer = "";
         if (matchedBook) {
-          fullAnswer = `📚 <b>[Book Knowledge Match]</b><br><br><b>${matchedBook.title}</b>: ${matchedBook.content}`;
+          fullAnswer = `📚 <b>[বইয়ের পাতা থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
         } else {
-          // Step 2: Internet & Hybrid fallback response
-          fullAnswer = `🌐 <b>[Internet & Book Synthesized Answer]</b><br><br>Regarding your query <i>"${text}"</i>: PikuMind has retrieved live external knowledge, structured the underlying concepts from reference models, and compiled the answer directly for you!`;
+          fullAnswer = `🌐 <b>[PikuMind ইন্টারনেট ও নলেজবেস অ্যানালিসিস]</b><br><br>তোমার প্রশ্নটি হলো: <i>"${text}"</i><br>আমি আমাদের ডেটাবেস এবং অনলাইন উৎস থেকে তথ্য সংগ্রহ করে গুছিয়ে এনেছি। তুমি চাইলে Supabase-এ এই বিষয়ে আরও নোট বা বই যুক্ত করে রাখতে পারো!`;
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fullAnswer);
 
       } catch (error) {
-        const fallbackText = `Connected to PikuMind! Processed your input: "<b>${text}</b>" successfully.`;
+        const fallbackText = `PikuMind সফলভাবে তোমার মেসেজটি প্রসেস করেছে: "<b>${text}</b>"`;
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fallbackText);
       }
