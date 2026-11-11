@@ -152,13 +152,14 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
         </button>
       </div>
-      <div class="footer-note">PikuMind may produce inaccurate info. Verify important code & facts.</div>
+      <div class="footer-note">PikuMind AI Brain Active. Double-check important answers.</div>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = "https://bppbhjtetremtmbwyrfg.supabase.co";
     const SUPABASE_KEY = "sb_publishable_zSmbVShwBbWzqtfmexCt5A_21wdI5J7";
+    const GROQ_API_KEY = "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";
 
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
@@ -234,70 +235,73 @@
       const tempId = 'ai-' + Date.now();
       box.innerHTML += `
         <div class="msg-row ai" id="${tempId}">
-          <div class="bubble">PikuMind বইয়ের পাতা থেকে খুঁজছে...</div>
+          <div class="bubble">PikuMind ব্রেইন চিন্তা করছে...</div>
         </div>
       `;
       contentArea.scrollTop = contentArea.scrollHeight;
 
       try {
-        // Fetch books from Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/books_knowledge?select=*`, {
-          headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-          }
-        });
-        const books = await response.json();
-        
-        let matchedBook = null;
-        const lowerInput = text.toLowerCase();
-
-        if (books && books.length > 0) {
-          // Strict targeted keyword matching to prevent false mapping
-          matchedBook = books.find(b => {
-            const title = b.title ? b.title.toLowerCase() : "";
-            const content = b.content ? b.content.toLowerCase() : "";
-            
-            if (lowerInput.includes('হুমায়ূন') || lowerInput.includes('humayun')) {
-              return title.includes('হুমায়ূন') || content.includes('হুমায়ূন');
+        // Step 1: Fetch books/knowledge from Supabase
+        let databaseContext = "";
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/books_knowledge?select=*`, {
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`
             }
-            if (lowerInput.includes('python') || lowerInput.includes('পাইথন')) {
-              return title.includes('python') || title.includes('পাইথন') || content.includes('python');
-            }
-            if (lowerInput.includes('javascript') || lowerInput.includes('জাভাস্ক্রিপ্ট')) {
-              return title.includes('javascript') || content.includes('javascript');
-            }
-            if (lowerInput.includes('মোবাইল') || lowerInput.includes('app') || lowerInput.includes('অ্যাপ')) {
-              return title.includes('মোবাইল') || content.includes('মোবাইল');
-            }
-
-            const words = lowerInput.split(' ').filter(w => w.length > 4);
-            return words.some(word => title.includes(word) || content.includes(word));
           });
+          const books = await response.json();
+          if (books && books.length > 0) {
+            databaseContext = books.map(b => `বইয়ের টাইটেল: ${b.title}\nবিষয়বস্তু: ${b.content}`).join("\n\n");
+          }
+        } catch (e) {
+          console.log("Supabase fetch skip or error", e);
         }
 
-        let fullAnswer = "";
-        if (matchedBook && matchedBook.content) {
-          // Dynamic variations so answers feel fresh and natural every time
-          const variations = [
-            `📚 <b>[বই ও নোট থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`,
-            `📖 <b>[আমার নলেজ বেস থেকে]</b><br><br>তোমার কাঙ্ক্ষিত বিষয়টি <b>${matchedBook.title}</b> বইয়ে এভাবে উল্লেখ আছে:<br>${matchedBook.content}`,
-            `💡 <b>[তথ্য অনুসন্ধান ফলাফল]</b><br><br><b>${matchedBook.title}</b> এর পাতা ঘেঁটে যা পাওয়া গেল:<br>${matchedBook.content}`
-          ];
-          fullAnswer = variations[Math.floor(Math.random() * variations.length)];
+        // Step 2: Send User Question + Database Context to Groq Llama 3 AI Brain
+        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${GROQ_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-8b-instant",
+            messages: [
+              {
+                role: "system",
+                content: `তুমি হলে "PikuMind AI" - একজন অত্যন্ত বুদ্ধিমান, অমায়িক ও পারফেক্ট জেনারেটিভ এআই সহকারী। 
+ইউজারের প্রশ্নের উত্তর দেওয়ার সময় তোমার প্রধান কাজ হলো নিচের ডাটাবেসের বই/নোট থেকে সাহায্য নেওয়া (যদি প্রাসঙ্গিক হয়)। 
+তবে কোনো অবস্থাতেই বইয়ের লেখা হুবহু কপি-পেস্ট করবে না! তুমি নিজের শব্দচয়নে নতুনভাবে প্রতিটি বাক্য বানিয়ে সুন্দর সাবলীল বাংলায় উত্তর দেবে। 
+যদি ডাটাবেসে তথ্য না থাকে বা অপ্রাসঙ্গিক হয়, তবে তুমি তোমার নিজস্ব কৃত্রিম বুদ্ধিমত্তা দিয়ে সঠিকভাবে উত্তর বুঝিয়ে দেবে।`
+              },
+              {
+                role: "user",
+                content: `ডাটাবেস নলেজ বেস:\n${databaseContext}\n\nইউজারের প্রশ্ন: "${text}"`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1024
+          })
+        });
+
+        const groqData = await groqResponse.json();
+        let aiGeneratedAnswer = "";
+
+        if (groqData.choices && groqData.choices[0]) {
+          aiGeneratedAnswer = groqData.choices[0].message.content;
+          // Format line breaks into HTML
+          aiGeneratedAnswer = aiGeneratedAnswer.replace(/\n/g, "<br>");
         } else {
-          const fallbackVariations = [
-            `🤖 <b>[PikuMind AI Assistant]</b><br><br>আপনার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়টি সম্পর্কে আমার ডাটাবেসের নির্দিষ্ট কোনো বইয়ে তথ্য পাওয়া যায়নি। আপনি চাইলে Supabase টেবিলে নতুন নোট বা বই যোগ করে নিতে পারেন!`,
-            `🔍 <b>[অনুসন্ধান নোটিশ]</b><br><br><i>"${text}"</i> - এই টপিক নিয়ে আমার সংগ্রহশালায় সরাসরি কোনো নোট নেই। তবে আপনি চাইলে এটি আমাদের বইয়ের ডেটাবেসে যুক্ত করে দিতে পারেন!`
-          ];
-          fullAnswer = fallbackVariations[Math.floor(Math.random() * fallbackVariations.length)];
+          aiGeneratedAnswer = "ক্ষমা করবেন, এআই ব্রেইনের সাথে সংযোগ করতে একটি ছোট সমস্যা হয়েছে। আবার চেষ্টা করুন!";
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
-        await typeEffect(bubbleElem, fullAnswer);
+        await typeEffect(bubbleElem, aiGeneratedAnswer);
 
       } catch (error) {
-        const fallbackText = `সংযোগ ত্রুটি! দয়া করে ইন্টারনেট কানেকশন বা Supabase সেটিংস চেক করুন।`;
+        console.error(error);
+        const fallbackText = `সংযোগ ত্রুটি! দয়া করে আপনার ইন্টারনেট কানেকশন বা API সেটিং চেক করুন।`;
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fallbackText);
       }
