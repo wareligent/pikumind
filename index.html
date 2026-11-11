@@ -234,13 +234,13 @@
       const tempId = 'ai-' + Date.now();
       box.innerHTML += `
         <div class="msg-row ai" id="${tempId}">
-          <div class="bubble">PikuMind ডাটাবেস থেকে খুঁজছে...</div>
+          <div class="bubble">PikuMind বইয়ের পাতা থেকে খুঁজছে...</div>
         </div>
       `;
       contentArea.scrollTop = contentArea.scrollHeight;
 
       try {
-        // Fetch real data from Supabase books_knowledge table
+        // Fetch books from Supabase
         const response = await fetch(`${SUPABASE_URL}/rest/v1/books_knowledge?select=*`, {
           headers: {
             "apikey": SUPABASE_KEY,
@@ -253,34 +253,37 @@
         const lowerInput = text.toLowerCase();
 
         if (books && books.length > 0) {
-          // Check if any book title or content matches user query words
+          // Flexible matching across all book titles and contents
           matchedBook = books.find(b => {
             const title = b.title ? b.title.toLowerCase() : "";
             const content = b.content ? b.content.toLowerCase() : "";
-            return lowerInput.split(' ').some(word => word.length > 2 && (title.includes(word) || content.includes(word)));
+            
+            // Check if any significant word from user input matches book title or content
+            return lowerInput.split(' ').some(word => word.length > 1 && (title.includes(word) || content.includes(word))) ||
+                   title.includes(lowerInput) || lowerInput.includes(title);
           });
         }
 
         let fullAnswer = "";
-        if (matchedBook) {
-          fullAnswer = `📚 <b>[ডাটাবেস বই ও নোট]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
+        if (matchedBook && matchedBook.content) {
+          fullAnswer = `📚 <b>[বই ও নোট থেকে প্রাপ্ত তথ্য]</b><br><br><b>${matchedBook.title}</b>:<br>${matchedBook.content}`;
         } else {
-          // If no direct database match, list all stored books or guide the user
-          let bookListHtml = "";
+          // If no specific book matched, show all available books as suggestions
+          let bookListText = "";
           if (books && books.length > 0) {
-            bookListHtml = "<br><br><b>আমাদের ডাটাবেসে বর্তমানে যে বইগুলো আছে:</b><br>" + books.map(b => `- ${b.title}`).join('<br>');
+            bookListText = "<br><br><b>আমার ডাটাবেসে বর্তমানে এই বই ও নোটগুলো রয়েছে:</b><br>" + books.map(b => `• <b>${b.title}</b>`).join('<br>');
           } else {
-            bookListHtml = "<br><br><i>বর্তমানে Supabase টেবিলে কোনো বই বা ডেটা নেই।</i>";
+            bookListText = "<br><br><i>বর্তমানে Supabase টেবিলে কোনো বই যুক্ত করা নেই।</i>";
           }
 
-          fullAnswer = `🌐 <b>[PikuMind লাইভ রেজাল্ট]</b><br><br>তোমার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়ে আমাদের নলেজবেসে সরাসরি কোনো মিল পাওয়া যায়নি।${bookListHtml}`;
+          fullAnswer = `🌐 <b>[PikuMind জ্ঞানভাণ্ডার]</b><br><br>তোমার প্রশ্ন: <i>"${text}"</i><br>এই বিষয়ের কোনো নির্দিষ্ট নোট সরাসরি মেলেনি।${bookListText}`;
         }
 
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fullAnswer);
 
       } catch (error) {
-        const fallbackText = `সংযোগ ত্রুটি! দয়া করে আপনার ইন্টারনেট কানেকশন বা Supabase তথ্য চেক করুন।`;
+        const fallbackText = `সংযোগ ত্রুটি! দয়া করে ইন্টারনেট কানেকশন বা Supabase সেটিংস চেক করুন।`;
         const bubbleElem = document.getElementById(tempId).querySelector('.bubble');
         await typeEffect(bubbleElem, fallbackText);
       }
